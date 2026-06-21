@@ -74,3 +74,13 @@ jobs:
         continue-on-error: true
         run: |
           uv run python -m tests.e2e.upstream_prefect_ecs_fargate.test_agent_e2e
+
+      # Always tear down the Fargate/ECS resources this demo provisions, even on
+      # failure or cancellation. Without this the ECS service is left running
+      # 24/7 and bills continuously (see issue #2898). `if: always()` is what
+      # makes a cancelled run still clean up; AWS creds configured above persist
+      # for the job, so no re-auth is needed.
+      - name: Tear down Prefect ECS resources
+        if: always()
+        run: |
+          uv run python -m tests.e2e.upstream_prefect_ecs_fargate.infrastructure_sdk.destroy
